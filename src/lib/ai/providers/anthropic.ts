@@ -52,7 +52,10 @@ export class AnthropicProvider implements AIProvider {
 
         const body = {
           model: this.model,
-          max_tokens: args.maxTokens ?? 4096,
+                    // 4096 was too low for real structured outputs like full CV
+          // extraction with quoted evidence — it truncated the JSON
+          // mid-output.
+          max_tokens: args.maxTokens ?? 8192,
           system:
             args.systemPrompt +
             "\n\nIMPORTANT: Respond with ONLY a single valid JSON object. No markdown code fences, no commentary before or after." +
@@ -147,6 +150,11 @@ function safeJsonParse(text: string): unknown {
   try {
     return JSON.parse(withoutFences);
   } catch (e) {
-    throw new AIProviderError("Model did not return valid JSON", e);
+    const preview = withoutFences.slice(0, 300);
+    const suffix = withoutFences.length > 300 ? "…" : "";
+    throw new AIProviderError(
+      `Model did not return valid JSON. Response preview (first 300 chars): ${preview}${suffix}`,
+      e
+    );
   }
 }
