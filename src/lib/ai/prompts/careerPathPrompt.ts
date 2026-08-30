@@ -12,7 +12,7 @@ export const careerPathOptionSchema = z.object({
   missingSkills: z.array(z.string()),
   experienceNeeded: z
     .string()
-    .nullable()
+    .nullish()
     .describe("What additional experience, if any, is needed beyond skills — null if none"),
   transitionDifficulty: z.enum(["EASY", "MODERATE", "CHALLENGING"]),
   recommendedPreparation: z.array(z.string()),

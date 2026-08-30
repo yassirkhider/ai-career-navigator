@@ -1,20 +1,20 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const CAREER_PROFILE_PARSER_VERSION = "v1";
 export const CAREER_PROFILE_PARSER_NAME = "careerProfileParser";
 
 export const careerProfileSchema = z.object({
-  professionalSummary: z.string().nullable(),
+  professionalSummary: z.string().nullish(),
   workExperiences: z.array(
     z.object({
       jobTitle: z.string(),
       employer: z.string(),
-      dateRange: z.string().nullable(),
+      dateRange: z.string().nullish(),
       responsibilities: z.array(z.string()),
       achievements: z.array(z.string()),
       rawSourceText: z
         .string()
-        .nullable()
+        .nullish()
         .describe(
           "Verbatim or near-verbatim excerpt from the CV for this entry. Null if no single clean excerpt captures it (e.g. it's assembled from multiple non-adjacent lines)."
         ),
@@ -24,16 +24,16 @@ export const careerProfileSchema = z.object({
     z.object({
       institution: z.string(),
       qualification: z.string(),
-      fieldOfStudy: z.string().nullable(),
-      dateRange: z.string().nullable(),
-      rawSourceText: z.string().nullable(),
+      fieldOfStudy: z.string().nullish(),
+      dateRange: z.string().nullish(),
+      rawSourceText: z.string().nullish(),
     })
   ),
   certifications: z.array(
     z.object({
       name: z.string(),
-      issuer: z.string().nullable(),
-      rawSourceText: z.string().nullable(),
+      issuer: z.string().nullish(),
+      rawSourceText: z.string().nullish(),
     })
   ),
   skills: z.array(
@@ -49,7 +49,7 @@ export const careerProfileSchema = z.object({
       ]),
       evidenceText: z
         .string()
-        .nullable()
+        .nullish()
         .describe("Verbatim or near-verbatim quote from the CV that supports this skill"),
       proficiency: z.enum([
         "AWARENESS",

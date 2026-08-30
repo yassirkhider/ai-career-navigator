@@ -7,7 +7,7 @@ interface CareerPathOption {
   currentFitPercent: number;
   keyStrengths: string[];
   missingSkills: string[];
-  experienceNeeded: string | null;
+  experienceNeeded?: string | null;
   transitionDifficulty: "EASY" | "MODERATE" | "CHALLENGING";
   recommendedPreparation: string[];
   rationale: string;

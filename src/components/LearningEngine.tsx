@@ -5,10 +5,10 @@ import { useState } from "react";
 interface CourseSuggestion {
   courseTitle: string;
   provider: string;
-  url: string | null;
+  url?: string | null;
   cost: string;
   certificateAvailable: boolean;
-  estimatedDuration: string | null;
+  estimatedDuration?: string | null;
   level: string;
   skillsCovered: string[];
   gapCoveragePercent: number;

@@ -12,13 +12,13 @@ export const courseSuggestionSchema = z.object({
     .describe("A real, well-known learning provider (e.g. Coursera, edX, Microsoft Learn, IBM SkillsBuild, Cisco Networking Academy, Google, AWS Skill Builder, OpenLearn, a named university, or a professional association)"),
   url: z
     .string()
-    .nullable()
+    .nullish()
     .describe(
       "ONLY the provider's stable homepage or search page for this topic (e.g. https://www.coursera.org/search?query=SAP%20PM) — NEVER a specific course-detail URL/slug you cannot verify is currently live. Null if you are not confident even of a stable search URL."
     ),
   cost: z.string(),
   certificateAvailable: z.boolean(),
-  estimatedDuration: z.string().nullable(),
+  estimatedDuration: z.string().nullish(),
   level: courseLevelEnum,
   skillsCovered: z.array(z.string()),
   gapCoveragePercent: z.number().int().min(0).max(100),

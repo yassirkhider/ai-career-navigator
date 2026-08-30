@@ -18,11 +18,11 @@ export const jobRequirementCategoryEnum = z.enum([
 
 export const jobParseSchema = z.object({
   title: z.string(),
-  company: z.string().nullable(),
-  location: z.string().nullable(),
-  workMode: z.string().nullable().describe("remote | hybrid | on-site, if stated"),
-  employmentType: z.string().nullable(),
-  salary: z.string().nullable(),
+  company: z.string().nullish(),
+  location: z.string().nullish(),
+  workMode: z.string().nullish().describe("remote | hybrid | on-site, if stated"),
+  employmentType: z.string().nullish(),
+  salary: z.string().nullish(),
   requirements: z.array(
     z.object({
       rawText: z.string().describe("The requirement as expressed in the job description"),

@@ -26,16 +26,16 @@ export const gapTypeEnum = z.enum([
 export const jobFitSchema = z.object({
   overallScore: z.number().int().min(0).max(100),
   categoryScores: z.object({
-    mandatory: z.number().int().min(0).max(100).nullable(),
-    technicalSkills: z.number().int().min(0).max(100).nullable(),
-    experience: z.number().int().min(0).max(100).nullable(),
-    education: z.number().int().min(0).max(100).nullable(),
-    certifications: z.number().int().min(0).max(100).nullable(),
-    softSkills: z.number().int().min(0).max(100).nullable(),
-    tools: z.number().int().min(0).max(100).nullable(),
-    industry: z.number().int().min(0).max(100).nullable(),
-    languages: z.number().int().min(0).max(100).nullable(),
-    location: z.number().int().min(0).max(100).nullable(),
+    mandatory: z.number().int().min(0).max(100).nullish(),
+    technicalSkills: z.number().int().min(0).max(100).nullish(),
+    experience: z.number().int().min(0).max(100).nullish(),
+    education: z.number().int().min(0).max(100).nullish(),
+    certifications: z.number().int().min(0).max(100).nullish(),
+    softSkills: z.number().int().min(0).max(100).nullish(),
+    tools: z.number().int().min(0).max(100).nullish(),
+    industry: z.number().int().min(0).max(100).nullish(),
+    languages: z.number().int().min(0).max(100).nullish(),
+    location: z.number().int().min(0).max(100).nullish(),
   }),
   matches: z.array(
     z.object({
@@ -45,10 +45,10 @@ export const jobFitSchema = z.object({
       gapType: gapTypeEnum,
       candidateEvidence: z
         .string()
-        .nullable()
+        .nullish()
         .describe("Quote or paraphrase from the candidate profile supporting the match, or null"),
-      recommendedAction: z.string().nullable(),
-      priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).nullable(),
+      recommendedAction: z.string().nullish(),
+      priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).nullish(),
     })
   ),
   recommendation: z.string().describe(

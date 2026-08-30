@@ -18,10 +18,10 @@
 export interface CourseSuggestion {
   courseTitle: string;
   provider: string;
-  url: string | null;
+  url?: string | null;
   cost: string; // e.g. "Free", "Free with paid certificate", "$49", "Included in subscription"
   certificateAvailable: boolean;
-  estimatedDuration: string | null;
+  estimatedDuration?: string | null;
   level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
   skillsCovered: string[];
   gapCoveragePercent: number; // 0-100, how much of the target skill gap this course addresses
