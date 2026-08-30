@@ -1,14 +1,19 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const CAREER_PROFILE_PARSER_VERSION = "v1";
 export const CAREER_PROFILE_PARSER_NAME = "careerProfileParser";
+
+const requiredStringWithFallback = z
+  .string()
+  .nullish()
+  .transform((v) => v ?? "");
 
 export const careerProfileSchema = z.object({
   professionalSummary: z.string().nullish(),
   workExperiences: z.array(
     z.object({
-      jobTitle: z.string(),
-      employer: z.string(),
+      jobTitle: requiredStringWithFallback,
+      employer: requiredStringWithFallback,
       dateRange: z.string().nullish(),
       responsibilities: z.array(z.string()),
       achievements: z.array(z.string()),
@@ -22,8 +27,8 @@ export const careerProfileSchema = z.object({
   ),
   educations: z.array(
     z.object({
-      institution: z.string(),
-      qualification: z.string(),
+      institution: requiredStringWithFallback,
+      qualification: requiredStringWithFallback,
       fieldOfStudy: z.string().nullish(),
       dateRange: z.string().nullish(),
       rawSourceText: z.string().nullish(),
@@ -31,14 +36,14 @@ export const careerProfileSchema = z.object({
   ),
   certifications: z.array(
     z.object({
-      name: z.string(),
+      name: requiredStringWithFallback,
       issuer: z.string().nullish(),
       rawSourceText: z.string().nullish(),
     })
   ),
   skills: z.array(
     z.object({
-      name: z.string(),
+      name: requiredStringWithFallback,
       category: z.enum([
         "technical",
         "soft",
@@ -62,7 +67,10 @@ export const careerProfileSchema = z.object({
     })
   ),
   languages: z.array(
-    z.object({ language: z.string(), proficiency: z.string() })
+    z.object({
+      language: requiredStringWithFallback,
+      proficiency: requiredStringWithFallback,
+    })
   ),
 });
 
