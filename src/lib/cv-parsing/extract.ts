@@ -45,6 +45,11 @@ export async function extractCvText(buffer: Buffer, mimeType: string): Promise<s
     throw new CvExtractionError(`Unsupported MIME type: ${mimeType}`);
   } catch (err) {
     if (err instanceof CvExtractionError) throw err;
+    // Log the real cause server-side (for `docker compose logs app` /
+    // production log aggregation) — the user only ever sees the safe,
+    // generic message below, but operators debugging a real failure need
+    // the actual error, not just "failed to parse."
+    console.error("[cv-parsing] extraction failed:", err);
     throw new CvExtractionError(
       "Failed to parse the uploaded document. It may be corrupted, password-protected, or in an unsupported format."
     );
