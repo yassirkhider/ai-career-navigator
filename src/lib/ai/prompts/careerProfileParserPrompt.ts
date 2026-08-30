@@ -1,22 +1,38 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 
 export const CAREER_PROFILE_PARSER_VERSION = "v1";
 export const CAREER_PROFILE_PARSER_NAME = "careerProfileParser";
 
+// Defensive coercion helpers. Real model output has proven inconsistent
+// about whether to omit a key entirely, send null, or send an empty
+// value when there's genuinely nothing to report (e.g. no certifications
+// on the CV) — a hard validation failure on any ONE of these blocks the
+// ENTIRE profile parse, which is far worse than one blank field or one
+// empty section. These normalize all three "nothing here" cases to a
+// single safe default, keeping the inferred TypeScript type exactly what
+// downstream code already expects (plain `string` / `T[]`), so no
+// persistence or UI code needs to change.
 const requiredStringWithFallback = z
   .string()
   .nullish()
   .transform((v) => v ?? "");
 
+function arrayWithFallback<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z
+    .array(itemSchema)
+    .nullish()
+    .transform((v) => v ?? []);
+}
+
 export const careerProfileSchema = z.object({
   professionalSummary: z.string().nullish(),
-  workExperiences: z.array(
+  workExperiences: arrayWithFallback(
     z.object({
       jobTitle: requiredStringWithFallback,
       employer: requiredStringWithFallback,
       dateRange: z.string().nullish(),
-      responsibilities: z.array(z.string()),
-      achievements: z.array(z.string()),
+      responsibilities: arrayWithFallback(z.string()),
+      achievements: arrayWithFallback(z.string()),
       rawSourceText: z
         .string()
         .nullish()
@@ -25,7 +41,7 @@ export const careerProfileSchema = z.object({
         ),
     })
   ),
-  educations: z.array(
+  educations: arrayWithFallback(
     z.object({
       institution: requiredStringWithFallback,
       qualification: requiredStringWithFallback,
@@ -34,14 +50,14 @@ export const careerProfileSchema = z.object({
       rawSourceText: z.string().nullish(),
     })
   ),
-  certifications: z.array(
+  certifications: arrayWithFallback(
     z.object({
       name: requiredStringWithFallback,
       issuer: z.string().nullish(),
       rawSourceText: z.string().nullish(),
     })
   ),
-  skills: z.array(
+  skills: arrayWithFallback(
     z.object({
       name: requiredStringWithFallback,
       category: z.enum([
@@ -66,7 +82,7 @@ export const careerProfileSchema = z.object({
       ]),
     })
   ),
-  languages: z.array(
+  languages: arrayWithFallback(
     z.object({
       language: requiredStringWithFallback,
       proficiency: requiredStringWithFallback,
@@ -80,6 +96,9 @@ const SYSTEM_PROMPT = `You are a CV/resume parsing engine for a career-developme
 
 Your ONLY job is to extract structured information from the candidate's CV text that appears
 inside the <document> tags in the user message, and return it as JSON matching the required schema.
+
+Every field in the schema must be present in your response. For sections with no data (e.g. no
+certifications on this CV), still include the key with an empty array [] — do not omit the key.
 
 CRITICAL ANTI-HALLUCINATION RULES:
 - Never invent qualifications, certificates, employment history, job titles, dates, accomplishments,
