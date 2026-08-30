@@ -52,9 +52,13 @@ export class AnthropicProvider implements AIProvider {
 
         const body = {
           model: this.model,
-                    // 4096 was too low for real structured outputs like full CV
-          // extraction with quoted evidence — it truncated the JSON
-          // mid-output.
+          // 4096 was the original default but proved too low in practice —
+          // a real, detailed CV extraction (multiple roles, each with
+          // responsibilities/achievements arrays plus verbatim evidence
+          // quotes for every skill) can genuinely exceed it, truncating
+          // the JSON mid-output and causing "Model did not return valid
+          // JSON" failures that have nothing to do with the JSON itself
+          // being malformed — the response was just cut off.
           max_tokens: args.maxTokens ?? 8192,
           system:
             args.systemPrompt +
@@ -97,6 +101,17 @@ export class AnthropicProvider implements AIProvider {
 
         const parsed = safeJsonParse(textBlock.text);
         const validated = args.schema.parse(parsed);
+
+        // Diagnostic visibility: a request can validate successfully while
+        // still producing surprisingly sparse/empty results (e.g. the model
+        // decided a section had no confidently-extractable content). This
+        // preview — visible via `docker compose logs app` — lets us see
+        // what the model actually returned without needing a DB migration
+        // just to debug a specific case.
+        console.log(
+          `[ai] ${args.promptName} success, response preview:`,
+          JSON.stringify(validated).slice(0, 1500)
+        );
 
         await recordAiInteraction({
           userId: args.userId,
@@ -150,6 +165,10 @@ function safeJsonParse(text: string): unknown {
   try {
     return JSON.parse(withoutFences);
   } catch (e) {
+    // Include a preview of what the model actually returned — without
+    // this, "Model did not return valid JSON" gives no way to diagnose
+    // *why* (truncation vs. genuinely malformed vs. extra prose) without
+    // a code change + redeploy just to add logging.
     const preview = withoutFences.slice(0, 300);
     const suffix = withoutFences.length > 300 ? "…" : "";
     throw new AIProviderError(

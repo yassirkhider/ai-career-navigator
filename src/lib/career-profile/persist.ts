@@ -45,6 +45,11 @@ export async function persistCareerProfileExtraction(
     }
 
     for (const exp of extraction.workExperiences) {
+      // Skip entries where both identifying fields came back empty (the
+      // defensive schema fallback converts a model-omitted field to "" to
+      // avoid a hard failure — but an entry with neither a job title nor
+      // an employer provides no value and would just show as a blank row).
+      if (!exp.jobTitle.trim() && !exp.employer.trim()) continue;
       await tx.insert(workExperiences).values({
         careerProfileId: profile.id,
         jobTitle: exp.jobTitle,
@@ -56,6 +61,7 @@ export async function persistCareerProfileExtraction(
     }
 
     for (const edu of extraction.educations) {
+      if (!edu.institution.trim() && !edu.qualification.trim()) continue;
       await tx.insert(educations).values({
         careerProfileId: profile.id,
         institution: edu.institution,
@@ -66,6 +72,7 @@ export async function persistCareerProfileExtraction(
     }
 
     for (const cert of extraction.certifications) {
+      if (!cert.name.trim()) continue;
       await tx.insert(certifications).values({
         careerProfileId: profile.id,
         name: cert.name,
@@ -75,6 +82,7 @@ export async function persistCareerProfileExtraction(
     }
 
     for (const skillExtraction of extraction.skills) {
+      if (!skillExtraction.name.trim()) continue;
       let [skillRow] = await tx
         .select()
         .from(skills)

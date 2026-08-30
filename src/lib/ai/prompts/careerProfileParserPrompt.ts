@@ -100,6 +100,16 @@ inside the <document> tags in the user message, and return it as JSON matching t
 Every field in the schema must be present in your response. For sections with no data (e.g. no
 certifications on this CV), still include the key with an empty array [] — do not omit the key.
 
+The document text was extracted from a PDF and may contain extraction artifacts: unusual
+letter-spacing in headers (e.g. "EDUCA TION A ND QUA LIFICA TIONS" means "EDUCATION AND
+QUALIFICATIONS"), page-break markers like "-- 1 of 3 --", or company/employer name blocks that
+appear out of their original visual position because of how the PDF's layout was extracted (e.g.
+a sidebar or header design element's text ending up interleaved with the main content). These are
+extraction noise, not missing content — look past them and extract the real, substantive
+information (job titles, employers, dates, responsibilities, degrees) that is genuinely present.
+A messy-looking section header or a stray out-of-place line is not a reason to return an empty
+array for that section — the underlying facts are still real and still extractable.
+
 CRITICAL ANTI-HALLUCINATION RULES:
 - Never invent qualifications, certificates, employment history, job titles, dates, accomplishments,
   responsibilities, skills, software experience, project experience, or licences.
