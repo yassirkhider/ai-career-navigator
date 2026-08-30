@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        env:
+          DATABASE_URL: "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+          AUTH_SECRET: "ci-build-time-secret-not-used-at-runtime-32-chars-min"
+        run: npm run build
+
+  # Runs only when a real Postgres is available (see the `services` block).
+  # Applies migrations against it and fails the job if they don't apply
+  # cleanly — catches migration mistakes before they reach production.
+  migration-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: acn
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: ai_career_navigator_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acn -d ai_career_navigator_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: "postgresql://acn:ci_password@localhost:5432/ai_career_navigator_ci"
+        run: npx drizzle-kit migrate
+
+  # Deployment must never run when the build/test/migration jobs above fail —
+  # this job depends on all of them and is the only one with deploy
+  # permissions in a real setup.
+  deploy-gate:
+    needs: [ci, migration-check]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: All checks passed
+        run: echo "CI and migration checks passed — safe to deploy. Wire your actual deploy step here (Vercel/Docker registry push/etc.)."

@@ -1,0 +1,78 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: acn
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-devpassword}
+      POSTGRES_DB: ai_career_navigator
+    volumes:
+      - acn_pgdata:/var/lib/postgresql/data
+    # No public port mapping — Postgres is only reachable from other
+    # containers on this compose network, not from the internet. For local
+    # dev where you want `psql` access from the host, temporarily add
+    # `ports: ["5432:5432"]` back or use `docker compose exec db psql ...`.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acn -d ai_career_navigator"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://acn:${POSTGRES_PASSWORD:-devpassword}@db:5432/ai_career_navigator
+    command: ["npx", "drizzle-kit", "migrate"]
+    profiles:
+      - migrate
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://acn:${POSTGRES_PASSWORD:-devpassword}@db:5432/ai_career_navigator
+      AUTH_SECRET: "${AUTH_SECRET:?AUTH_SECRET must be set, generate with openssl rand -hex 32}"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+      NODE_ENV: production
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      STORAGE_LOCAL_PATH: ./storage/uploads
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PRICE_ID: ${STRIPE_PRICE_ID:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+    # No public port mapping — only Caddy talks to this container directly,
+    # over the internal compose network (service name `app`, port 3000).
+    volumes:
+      - acn_uploads:/app/storage/uploads
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      DOMAIN: "${DOMAIN:?DOMAIN must be set to your real domain, e.g. app.example.com, Caddy needs it for a TLS certificate}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - acn_caddy_data:/data
+      - acn_caddy_config:/config
+
+volumes:
+  acn_pgdata:
+  acn_uploads:
+  acn_caddy_data:
+  acn_caddy_config:
