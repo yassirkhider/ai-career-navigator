@@ -110,7 +110,7 @@ export class AnthropicProvider implements AIProvider {
         // just to debug a specific case.
         console.log(
           `[ai] ${args.promptName} success, response preview:`,
-          JSON.stringify(validated).slice(0, 1500)
+          JSON.stringify(validated).slice(0, 4000)
         );
 
         await recordAiInteraction({

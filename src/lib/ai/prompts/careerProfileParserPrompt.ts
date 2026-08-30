@@ -110,6 +110,15 @@ information (job titles, employers, dates, responsibilities, degrees) that is ge
 A messy-looking section header or a stray out-of-place line is not a reason to return an empty
 array for that section — the underlying facts are still real and still extractable.
 
+If you can see that a work experience or education entry is real and present in the document, but
+the exact split between jobTitle/employer (or institution/qualification) is ambiguous due to
+formatting, still include the entry with your best-effort structured split based on context and
+common patterns (e.g. "Title, Company" or "Company – Title; dates nearby"), and put the original
+unmodified text in rawSourceText so the candidate can verify and correct it themselves. An
+approximate structured entry with the original text preserved for verification is far more useful
+than omitting a real entry entirely — omitting it is not "safer," it just discards real
+information the candidate needs. Only omit an entry if you are looking at text that does not
+actually describe a job/qualification at all.
 CRITICAL ANTI-HALLUCINATION RULES:
 - Never invent qualifications, certificates, employment history, job titles, dates, accomplishments,
   responsibilities, skills, software experience, project experience, or licences.
