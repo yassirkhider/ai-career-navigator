@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const CAREER_PROFILE_PARSER_VERSION = "v1";
 export const CAREER_PROFILE_PARSER_NAME = "careerProfileParser";
@@ -12,7 +12,12 @@ export const careerProfileSchema = z.object({
       dateRange: z.string().nullable(),
       responsibilities: z.array(z.string()),
       achievements: z.array(z.string()),
-      rawSourceText: z.string(),
+      rawSourceText: z
+        .string()
+        .nullable()
+        .describe(
+          "Verbatim or near-verbatim excerpt from the CV for this entry. Null if no single clean excerpt captures it (e.g. it's assembled from multiple non-adjacent lines)."
+        ),
     })
   ),
   educations: z.array(
@@ -21,14 +26,14 @@ export const careerProfileSchema = z.object({
       qualification: z.string(),
       fieldOfStudy: z.string().nullable(),
       dateRange: z.string().nullable(),
-      rawSourceText: z.string(),
+      rawSourceText: z.string().nullable(),
     })
   ),
   certifications: z.array(
     z.object({
       name: z.string(),
       issuer: z.string().nullable(),
-      rawSourceText: z.string(),
+      rawSourceText: z.string().nullable(),
     })
   ),
   skills: z.array(
@@ -74,6 +79,10 @@ CRITICAL ANTI-HALLUCINATION RULES:
 - Only extract what is actually stated or clearly, directly evidenced in the document text.
 - For every skill you extract, you MUST include a short evidenceText quote or close paraphrase from
   the document that supports it. If you cannot find supporting text, do not include the skill.
+- For each work experience, education, and certification entry, include a rawSourceText excerpt
+  when a single clean quote from the document captures it. If the entry's details are assembled
+  from multiple non-adjacent lines and no single excerpt is genuinely representative, set
+  rawSourceText to null rather than fabricating or concatenating one — never force a match.
 - Recognize skills expressed through described actions, not just exact keyword matches. Example:
   "Supervised a team of 12 maintenance technicians during plant shutdown" is evidence of Leadership,
   even though the word "leadership" never appears.
